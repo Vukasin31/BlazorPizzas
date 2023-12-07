@@ -1,0 +1,106 @@
+﻿@page "/"
+@using ContosoPizzaBlazor.Datas
+@inject ContosoPizzaBlazor.Service.IPizzaService pizzaService
+@rendermode InteractiveServer
+
+<FluentHeader>
+    Welcome to Contoso Pizza
+</FluentHeader>
+<FluentBodyContent>
+    <div class="col-md-12">
+        <div class="row pizza-input">
+            <div class="row">
+                <br/>
+                <br/>
+                <div class="col-md-2 pizza-input" style="width:100%">
+                    <label>Name: </label>
+                    <FluentTextField @bind-Value=pizza.PizzaName Appearance="FluentInputAppearance.Filled" Placeholder="Pizza name" />
+                </div>
+            </div>
+            <div class="row">
+                <br />
+                <br />
+                <div class="col-md-8 pizza-input">
+                    Pizza is gluten free @pizza.IsGlutenFree
+                    <FluentCheckbox @bind-Value="@pizza.IsGlutenFree" />
+                </div>
+            </div>
+            <div class="row">     
+                <br />
+                <br />
+                <div class="col-md-2 pizza-input" style="justify-content: space-between">
+                    <FluentButton BackgroundColor="#0000FF" Color="rgb(255,255,255)" @onclick="@(e => Save())">Save</FluentButton>
+                    <FluentButton BackgroundColor="rgb(255,0,0)" Color="rgb(255,255,255)" @onclick="@(e => Reset())">Reset</FluentButton>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8" style="width:100%">
+        <table class="table">
+            <thead >
+                <tr>
+                    <th>Pizza Name</th>
+                    <th>Is pizza gluten free?</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Pizzas.Count() <= 0)
+                {
+                    <div style="width: 300px;display: grid; grid-gap: 12px; grid-auto-flow: column;">
+                        Looking for pizzas
+                        <FluentProgressRing></FluentProgressRing>
+                    </div>
+                }
+                else if (Pizzas.Count() > 0)
+                {
+                    @foreach (var pizz in Pizzas)
+                    {
+                        <tr>
+                            <td>@pizz.PizzaName</td>
+                            <td>@pizz.IsGlutenFree</td>
+                            <td>
+                                <FluentButton IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(e => Edit(@pizz.Id))" />
+                                <FluentButton IconEnd="@(new Icons.Regular.Size16.Delete())" @onclick="@(e => Delete(@pizz.Id))" />
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</FluentBodyContent>
+
+
+@code{    
+    Pizza pizza = new Pizza();
+    List<Pizza> Pizzas = new List<Pizza>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        GetPizzas();
+    }
+    private void GetPizzas()
+    {
+        Pizzas = pizzaService.GetPizzas();
+    }
+    private void Save()
+    {
+        pizzaService.SaveOrUpdrate(pizza);
+        Reset();
+        GetPizzas();
+    }
+    private void Reset()
+    {
+        pizza = new Pizza();
+    }
+    private void Edit(string pizzaId)
+    {
+        pizza = pizzaService.GetPizza(pizzaId);
+    }
+    private void Delete(string pizzaId)
+    {
+        pizzaService.Delete(pizzaId);
+        GetPizzas();
+    }
+}
